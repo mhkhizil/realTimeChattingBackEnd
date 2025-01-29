@@ -2,29 +2,41 @@ import { Injectable } from '@nestjs/common';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
 import { UserRepository } from './user.repository';
-
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UsersService {
-  constructor(private readonly UserRepository:UserRepository){
-
+  constructor(private readonly UserRepository: UserRepository) {}
+  private async hashedPassword(password: string) {
+    return bcrypt.hash(password, 10);
   }
-  create(createUserInput: CreateUserInput) {
-    return 'This action adds a new user';
+  async create(createUserInput: CreateUserInput) {
+    return this.UserRepository.create({
+      ...createUserInput,
+      password: await this.hashedPassword(createUserInput.password),
+    });
   }
 
   async findAll() {
-    return  this.UserRepository.find({});
+    return this.UserRepository.find({});
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(_id: string) {
+    return this.UserRepository.findOne({ _id });
   }
 
-  update(id: number, updateUserInput: UpdateUserInput) {
-    return `This action updates a #${id} user`;
+  async update(_id: string, updateUserInput: UpdateUserInput) {
+    return this.UserRepository.findOneAndUpdate(
+      { _id },
+      {
+        $set: {
+          ...updateUserInput,
+          password:await  this.hashedPassword(updateUserInput.password),
+        },
+      },
+    );
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(_id: string) {
+    return this.UserRepository.findOneAndDelete({ _id });
   }
 }

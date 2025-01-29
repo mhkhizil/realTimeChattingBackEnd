@@ -2,6 +2,7 @@ import { Logger, NotFoundException } from '@nestjs/common';
 
 import { Model, Types, FilterQuery, UpdateQuery } from 'mongoose';
 import { AbstractEntity } from './abstract.entity';
+import { log } from 'console';
 
 export abstract class AbstractRepository<T extends AbstractEntity> {
   protected readonly logger: Logger;
@@ -11,7 +12,7 @@ export abstract class AbstractRepository<T extends AbstractEntity> {
       ...document,
       _id: new Types.ObjectId(),
     });
-    return (await createDocument.save()).toJSON as unknown as T;
+    return (await createDocument.save()).toJSON() as T;
   }
   public async findOne(filterQuery: FilterQuery<T>): Promise<T> {
     const document = await this.model.findOne(filterQuery).lean<T>();
@@ -40,6 +41,7 @@ export abstract class AbstractRepository<T extends AbstractEntity> {
       );
       throw new NotFoundException('Document not found');
     }
+    
     return document;
   }
   public async find(filterQuery: FilterQuery<T>): Promise<T> {
